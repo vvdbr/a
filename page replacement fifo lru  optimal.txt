@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <limits.h>
+
+int fifo(int reference_string[], int n, int frames) {
+    int memory[frames];
+    int page_faults = 0, index = 0;
+
+    for (int i = 0; i < frames; i++) {
+        memory[i] = -1; // Initialize memory to empty
+    }
+
+    for (int i = 0; i < n; i++) {
+        int found = 0;
+        for (int j = 0; j < frames; j++) {
+            if (memory[j] == reference_string[i]) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            memory[index] = reference_string[i];
+            index = (index + 1) % frames;
+            page_faults++;
+        }
+    }
+
+    return page_faults;
+}
+
+int lru(int reference_string[], int n, int frames) {
+    int memory[frames];
+    int page_faults = 0;
+    int age[frames];
+
+    for (int i = 0; i < frames; i++) {
+        memory[i] = -1;
+        age[i] = 0;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int found = 0;
+        for (int j = 0; j < frames; j++) {
+            if (memory[j] == reference_string[i]) {
+                found = 1;
+                age[j] = i; // Update age for LRU
+                break;
+            }
+        }
+        if (!found) {
+            page_faults++;
+            int lru_index = 0;
+            for (int j = 1; j < frames; j++) {
+                if (age[j] < age[lru_index]) {
+                    lru_index = j;
+                }
+            }
+            memory[lru_index] = reference_string[i];
+            age[lru_index] = i;
+        }
+    }
+
+    return page_faults;
+}
+
+int optimal(int reference_string[], int n, int frames) {
+    int memory[frames];
+    int page_faults = 0;
+
+    for (int i = 0; i < frames; i++) {
+        memory[i] = -1;
+    }
+
+    for (int i = 0; i < n; i++) {
+        int found = 0;
+        for (int j = 0; j < frames; j++) {
+            if (memory[j] == reference_string[i]) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            page_faults++;
+            if (i < frames) {
+                memory[i] = reference_string[i];
+            } else {
+                int farthest = -1, replace_index = -1;
+                for (int j = 0; j < frames; j++) {
+                    int k;
+                    for (k = i + 1; k < n; k++) {
+                        if (memory[j] == reference_string[k]) {
+                            if (k > farthest) {
+                                farthest = k;
+                                replace_index = j;
+                            }
+                            break;
+                        }
+                    }
+                    if (k == n) {
+                        replace_index = j;
+                        break;
+                    }
+                }
+                memory[replace_index] = reference_string[i];
+            }
+        }
+    }
+
+    return page_faults;
+}
+
+int main() {
+    int reference_string[] = {7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1};
+    int n = sizeof(reference_string) / sizeof(reference_string[0]);
+    int frames = 3;
+
+    printf("FIFO Page Faults: %d\n", fifo(reference_string, n, frames));
+    printf("LRU Page Faults: %d\n", lru(reference_string, n, frames));
+    printf("Optimal Page Faults: %d\n", optimal(reference_string, n, frames));
+
+    return 0;
+}

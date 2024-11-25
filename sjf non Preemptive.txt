@@ -1,0 +1,131 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Scanner;
+
+public class SJFNonPreemptive {
+    static class Process{
+
+    
+    private  int bt;
+       private  int at;
+       private int ct;
+       private int wt;
+       private int tat;
+       private int pid;
+        private boolean visited;
+
+       public void setpid(int id){
+        this.pid=id;
+       }
+       public int getpid(){
+        return pid;
+       }
+       public void setat(int at){
+        this.at=at;
+       }
+       public void setbt(int bt){
+        this.bt=bt;
+       }
+       public int getat(){
+        return at;
+       }
+       public int getbt(){
+        return bt;
+       }
+       public void setct(int ct){
+        this.ct=ct;
+       }
+       public int getct(){
+        return ct;
+       }
+       public void settat(int tat){
+        this.tat=tat;
+       }
+       public int gettat(){
+        return tat;
+       }
+       public void setwt(int wt){
+        this.wt=wt;
+       }
+       public int getwt(){
+        return wt;
+       }
+       public void Cal_Ct(int curr,int bt){
+        this.ct=curr+bt;
+
+       }
+       public void Cal_Tat(){
+        this.tat=this.ct-this.at;
+
+       }
+       public void Cal_Wt(){
+        this.wt=this.tat-this.bt;
+
+       }
+       public void display() {  
+        System.out.printf("%d\t%d\t%d\t%d\t%d\t%d\n", pid, at, bt, ct, tat, wt);  
+    }
+    }
+    public static void main(String[] args) {
+         Scanner sc=new Scanner(System.in);
+        System.out.println("Enter no of processes");
+
+        int n=sc.nextInt();
+        ArrayList<Process> processes=new ArrayList<>(n);
+        for(int i=0;i<n;i++){
+            Process p=new Process();
+            p.setpid(i+1);
+            System.out.println("enter at for process"+(i+1));
+            int at=sc.nextInt();
+            p.setat(at);
+            System.out.println("enter bt for process"+(i+1));
+
+            int bt=sc.nextInt();
+            p.setbt(bt);
+            processes.add(p);
+        }
+
+        Collections.sort(processes, Comparator.comparingInt(p -> p.at));
+        int current=0;
+
+        int i=0;
+        while(i<n){
+            ArrayList<Process> arrivedProcesses=new ArrayList<>();
+            for(Process p:processes){
+                if(current<=p.getat()&& p.visited!=true){
+                    arrivedProcesses.add(p);
+                }
+
+            }
+            if(!arrivedProcesses.isEmpty()){            
+                Collections.sort(arrivedProcesses, Comparator.comparingInt(p -> p.bt));
+                for(Process p:arrivedProcesses){
+                    if (p.getat()<=current) {
+                        
+                        p.Cal_Ct(current, p.getbt());
+                        
+                    }
+                    else if(p.getat()>current){
+                        p.Cal_Ct(p.getat(), p.getbt());
+                       
+                    }
+                    p.visited=true;
+                        p.Cal_Tat();
+                        p.Cal_Wt();
+                        current=p.getct();
+                }
+            }else{
+                current++;
+            }
+            i++;
+        }
+        System.out.println("PID\tAT\tBT\tCT\tTAT\tWT");
+        for( i=0;i<processes.size();i++){
+            Process p=processes.get(i);
+            p.display();
+
+        }
+    }
+
+}

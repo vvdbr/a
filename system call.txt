@@ -1,0 +1,205 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+// Bubble Sort implementation (for parent)
+void bubbleSort(int arr[], int n) {
+    int i, j, temp;
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+// Selection Sort implementation (for child)
+void selectionSort(int arr[], int n) {
+    int i, j, min_idx, temp;
+    for (i = 0; i < n - 1; i++) {
+        min_idx = i;
+        for (j = i + 1; j < n; j++) {
+            if (arr[j] < arr[min_idx]) {
+                min_idx = j;
+            }
+        }
+        temp = arr[min_idx];
+        arr[min_idx] = arr[i];
+        arr[i] = temp;
+    }
+}
+
+// Function to print array
+void printArray(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+int main() {
+    int n, i;
+    printf("Enter number of integers: ");
+    scanf("%d", &n);
+
+    int arr[n];
+    printf("Enter the integers:\n");
+    for (i = 0; i < n; i++) {
+        scanf("%d", &arr[i]);
+    }
+
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        // Fork failed
+        printf("Fork failed.\n");
+        return 1;
+    } else if (pid == 0) {
+        // Child process
+        printf("Child process: Sorting using Selection Sort...\n");
+        selectionSort(arr, n);
+        printf("Child process: Sorted array: ");
+        printArray(arr, n);
+        printf("Child process: Sleeping for 5 seconds to demonstrate orphan state.\n");
+        sleep(5);  // Sleep to simulate time for orphan state
+        printf("Child process: Completed.\n");
+    } else {
+        // Parent process
+        printf("Parent process: Sorting using Bubble Sort...\n");
+        bubbleSort(arr, n);
+        printf("Parent process: Sorted array: ");
+        printArray(arr, n);
+
+        printf("Parent process: Waiting for child to finish...\n");
+        sleep(10);  // Sleep to demonstrate zombie state (before calling wait)
+        wait(NULL); // Wait for child process to avoid zombie state
+        printf("Parent process: Child process has finished (no zombie).\n");
+
+        printf("Parent process: Completed.\n");
+    }
+
+    return 0;
+}
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Scanner;
+
+public class FCFS1 {
+
+    public static  class Process{
+       private  int bt;
+       private  int at;
+       private int ct;
+       private int wt;
+       private int tat;
+       private int pid;
+
+       public void setpid(int id){
+        this.pid=id;
+       }
+       public int getpid(){
+        return pid;
+       }
+       public void setat(int at){
+        this.at=at;
+       }
+       public void setbt(int bt){
+        this.bt=bt;
+       }
+       public int getat(){
+        return at;
+       }
+       public int getbt(){
+        return bt;
+       }
+       public void setct(int ct){
+        this.ct=ct;
+       }
+       public int getct(){
+        return ct;
+       }
+       public void settat(int tat){
+        this.tat=tat;
+       }
+       public int gettat(){
+        return tat;
+       }
+       public void setwt(int wt){
+        this.wt=wt;
+       }
+       public int getwt(){
+        return wt;
+       }
+       public void Cal_Ct(int curr,int bt){
+        this.ct=curr+bt;
+
+       }
+       public void Cal_Tat(){
+        this.tat=this.ct-this.at;
+
+       }
+       public void Cal_Wt(){
+        this.wt=this.tat-this.bt;
+
+       }
+       public void display() {  
+        System.out.printf("%d\t%d\t%d\t%d\t%d\t%d\n", pid, at, bt, ct, tat, wt);  
+    }
+
+    }
+    public static void main(String[] args) {
+
+        Scanner sc=new Scanner(System.in);
+        System.out.println("Enter no of processes");
+
+        int n=sc.nextInt();
+        ArrayList<Process> processes=new ArrayList<>(n);
+        for(int i=0;i<n;i++){
+            Process p=new Process();
+            p.setpid(i+1);
+            System.out.println("enter at for process"+(i+1));
+            int at=sc.nextInt();
+            p.setat(at);
+            System.out.println("enter bt for process"+(i+1));
+
+            int bt=sc.nextInt();
+            p.setbt(bt);
+            processes.add(p);
+        }
+         Collections.sort(processes, new Comparator<Process>() {  
+            public int compare(Process first, Process second) {  
+                return first.getat() - second.getat();  
+            }  
+        });
+        int current=0;
+        for(int i=0;i<processes.size();i++){
+            Process p=processes.get(i);
+            if(p.getat()<=current){
+                p.Cal_Ct(current,p.getbt() );
+
+            }
+            else if (p.getat()>current) {
+                p.Cal_Ct(p.getat(),p.getbt() );
+            }
+            current=p.getct();
+            p.Cal_Tat();
+            p.Cal_Wt();
+
+        } 
+        System.out.println("PID\tAT\tBT\tCT\tTAT\tWT");
+        for(int i=0;i<processes.size();i++){
+            Process p=processes.get(i);
+            p.display();
+
+        }
+        
+    }
+    
+}

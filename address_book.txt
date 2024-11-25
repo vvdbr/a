@@ -1,0 +1,82 @@
+#!/bin/sh
+
+print_list() {
+  reset
+
+  echo "(1) - Search Employee"
+  echo "(2) - Add an Employee entry"
+  echo "(3) - Remove an Employee entry"
+  echo "(4) - For quit the app, press 4, goodbye..."
+
+  echo "Select the number of your choice on the list, or quit by pressing q"
+}
+
+read_record() {
+
+  RECORD=$1
+  ID=$(nl employee.txt | grep -w $RECORD | awk '{print $1}')
+  NAME=$(nl employee.txt | grep -w $RECORD | awk '{print $2}')
+  PHONE=$(nl employee.txt | grep -w $RECORD | awk '{print $3}')
+  EMAIL=$(nl employee.txt | grep -w $RECORD | awk '{print $4}')
+  echo "Id: $ID , Name: $NAME , Phone: $PHONE ,email: $EMAIL"
+}
+
+insert_record() {
+  echo "please enter Employee id"
+  read ID
+  echo "please enter Employee name "
+  read NAME
+  echo "please enter Employee phone number "
+  read PHONE 
+  echo "Enter the Employee email-id"
+  read EMAIl
+  echo "Adding employee address book entry..."
+  echo "$ID $NAME $PHONE $EMAIL" >> employee.txt
+  echo "data inserted!"
+}
+
+remove_record() {
+  DATA=$1
+  echo "Removing Employee entry"
+  sed -i "/$DATA/d" employee.txt
+}
+
+go_back() {
+  echo "for going back to main menu pres m, for quit press q"
+
+  read CHOICE_MENU
+  if [ $CHOICE_MENU = "m" ]; then
+    print_list
+    read CHOICE
+    elif [ $CHOICE_MENU = "q" ]; then
+      exit 0
+    else 
+      echo "enter m for continue and q for quite"
+  fi
+}
+
+echo "Welcome to Employee Address Book"
+
+print_list
+
+read CHOICE
+
+while [ $CHOICE -ne 4 ]
+do
+  if [ $CHOICE -eq 2 ]; then
+    echo "please enter employee either id,name or phone number"
+    read QUERY
+    read_record $QUERY
+    go_back
+    elif [ $CHOICE -eq 1 ]; then
+      insert_record
+      go_back
+    elif [ $CHOICE -eq 3 ]; then
+      echo "please enter either id,name or phone number of user that you want to remove"
+      read USER
+      remove_record $USER
+      go_back
+    else 
+      exit 0
+  fi
+done

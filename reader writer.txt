@@ -1,0 +1,108 @@
+// reader writer
+
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+pthread_mutex_t resource_mutex;   // Mutex to lock the resource (for writers)
+pthread_mutex_t reader_count_mutex; // Mutex to protect reader count
+
+int reader_count = 0;  // Number of active readers
+int shared_data = 0;   // Shared resource
+
+// Reader function
+void* reader(void* arg) {
+    int reader_id = (int)arg;
+
+    while (1) {
+        // Lock the reader_count mutex to update reader count
+        pthread_mutex_lock(&reader_count_mutex);
+        reader_count++;
+        if (reader_count == 1) {
+            // If this is the first reader, lock the resource
+            pthread_mutex_lock(&resource_mutex);
+        }
+        pthread_mutex_unlock(&reader_count_mutex);
+
+        // Reading the shared data
+        printf("Reader %d: Reading shared data = %d\n", reader_id, shared_data);
+
+        // Simulate reading time
+        sleep(1);
+
+        // After reading, update the reader count
+        pthread_mutex_lock(&reader_count_mutex);
+        reader_count--;
+        if (reader_count == 0) {
+            // If no readers left, unlock the resource for writers
+            pthread_mutex_unlock(&resource_mutex);
+        }
+        pthread_mutex_unlock(&reader_count_mutex);
+
+        // Simulate time before the next read
+        sleep(2);
+    }
+
+    return NULL;
+}
+
+// Writer function
+void* writer(void* arg) {
+    int writer_id = (int)arg;
+
+    while (1) {
+        // Lock the resource to write
+        pthread_mutex_lock(&resource_mutex);
+
+        // Writing to the shared data
+        shared_data += 1;
+        printf("Writer %d: Writing shared data = %d\n", writer_id, shared_data);
+
+        // Simulate writing time
+        sleep(2);
+
+        // Unlock the resource after writing
+        pthread_mutex_unlock(&resource_mutex);
+
+        // Simulate time before the next write
+        sleep(3);
+    }
+
+    return NULL;
+}
+
+int main() {
+    pthread_t readers[5], writers[3]; // Create threads for readers and writers
+    int reader_ids[5], writer_ids[3];
+
+    // Initialize mutexes
+    pthread_mutex_init(&resource_mutex, NULL);
+    pthread_mutex_init(&reader_count_mutex, NULL);
+
+    // Create reader threads
+    for (int i = 0; i < 5; i++) {
+        reader_ids[i] = i + 1;
+        pthread_create(&readers[i], NULL, reader, &reader_ids[i]);
+    }
+
+    // Create writer threads
+    for (int i = 0; i < 3; i++) {
+        writer_ids[i] = i + 1;
+        pthread_create(&writers[i], NULL, writer, &writer_ids[i]);
+    }
+
+    // Join reader and writer threads (though they run indefinitely in this case)
+    for (int i = 0; i < 5; i++) {
+        pthread_join(readers[i], NULL);
+    }
+    for (int i = 0; i < 3; i++) {
+        pthread_join(writers[i], NULL);
+    }
+
+    // Destroy mutexes
+    pthread_mutex_destroy(&resource_mutex);
+    pthread_mutex_destroy(&reader_count_mutex);
+
+    return 0;
+}

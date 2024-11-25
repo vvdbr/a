@@ -1,0 +1,147 @@
+import java.util.Scanner;
+
+public class Bankers {
+
+    int n; // Number of processes
+    int m; // Number of resources
+    int[][] need;
+    int[][] max;
+    int[][] alloc;
+    int[] avail;
+    int[] safeSequence;
+
+    // Initialize the matrices with user input
+    void initializeValues() {
+        Scanner sc = new Scanner(System.in);
+
+        // Input the number of processes
+        System.out.print("Enter the number of processes: ");
+        n = sc.nextInt();
+
+        // Input the number of resources
+        System.out.print("Enter the number of resources: ");
+        m = sc.nextInt();
+
+        // Initialize the matrices based on user input sizes
+        alloc = new int[n][m];
+        max = new int[n][m];
+        avail = new int[m];
+        need = new int[n][m];
+        safeSequence = new int[n];
+
+        // Input Allocation Matrix
+        System.out.println("Enter the Allocation Matrix:");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                alloc[i][j] = sc.nextInt();
+            }
+        }
+
+        // Input Maximum Matrix
+        System.out.println("Enter the Maximum Matrix:");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                max[i][j] = sc.nextInt();
+            }
+        }
+
+        // Input Available Resources
+        System.out.println("Enter the Available Resources:");
+        for (int i = 0; i < m; i++) {
+            avail[i] = sc.nextInt();
+        }
+
+        sc.close();
+    }
+
+    // Function to check if the system is in a safe state
+    void isSafe() {
+        int count = 0;
+        boolean visited[] = new boolean[n]; // To keep track of visited processes
+        int[] work = new int[m]; // Copy of available resources
+
+        // Initialize visited array
+        for (int i = 0; i < n; i++) {
+            visited[i] = false;
+        }
+
+        // Initialize work array
+        for (int i = 0; i < m; i++) {
+            work[i] = avail[i];
+        }
+
+        // Main loop to find the safe sequence
+        while (count < n) {
+            boolean flag = false;
+            for (int i = 0; i < n; i++) {
+                if (!visited[i]) {
+                    int j;
+                    for (j = 0; j < m; j++) {
+                        if (need[i][j] > work[j]) {
+                            break;
+                        }
+                    }
+
+                    if (j == m) {
+                        safeSequence[count++] = i;
+                        visited[i] = true;
+                        flag = true;
+
+                        // Update work array as the process has completed
+                        for (j = 0; j < m; j++) {
+                            work[j] += alloc[i][j];
+                        }
+                    }
+                }
+            }
+
+            if (!flag) {
+                break;
+            }
+        }
+
+        // Check if all processes were able to execute in the safe sequence
+        if (count < n) {
+            System.out.println("The System is UnSafe!");
+        } else {
+            System.out.println("The system is Safe.");
+            System.out.print("Safe Sequence: ");
+            for (int i = 0; i < n; i++) {
+                System.out.print("P" + safeSequence[i]);
+                if (i != n - 1) {
+                    System.out.print(" -> ");
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    // Function to calculate the Need Matrix
+    void calculateNeed() {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                need[i][j] = max[i][j] - alloc[i][j];
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Bankers banker = new Bankers();
+
+        // Initialize values with user input
+        banker.initializeValues();
+
+        // Calculate the Need Matrix
+        banker.calculateNeed();
+
+        // Check whether the system is in a safe state or not
+        banker.isSafe();
+    }
+}
+
+
+
+
+
+
+

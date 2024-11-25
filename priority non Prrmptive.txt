@@ -1,0 +1,96 @@
+import java.util.Scanner;
+
+class Process {
+    int id, arrivalTime, burstTime, priority, completionTime, waitingTime, turnAroundTime;
+
+    public Process(int id, int arrivalTime, int burstTime, int priority) {
+        this.id = id;
+        this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
+        this.priority = priority;
+    }
+}
+
+public class PriorityNonPreemptive {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        System.out.print("Enter the number of processes: ");
+        int n = scanner.nextInt();
+        
+        Process[] processes = new Process[n];
+        
+        for (int i = 0; i < n; i++) {
+            System.out.println("Enter arrival time, burst time and priority for process " + (i+1) + ":");
+            int arrivalTime = scanner.nextInt();
+            int burstTime = scanner.nextInt();
+            int priority = scanner.nextInt();
+            processes[i] = new Process(i + 1, arrivalTime, burstTime, priority);
+        }
+
+        // Sort processes by arrival time, then by priority (higher priority first if arrival times are the same)
+        sortByArrivalAndPriority(processes);
+        
+        calculateCompletionTimes(processes);
+        calculateTurnAroundTimes(processes);
+        calculateWaitingTimes(processes);
+        
+        printProcessDetails(processes);
+        printAverageTimes(processes);
+    }
+
+    private static void sortByArrivalAndPriority(Process[] processes) {
+        for (int i = 0; i < processes.length - 1; i++) {
+            for (int j = 0; j < processes.length - i - 1; j++) {
+                if (processes[j].arrivalTime > processes[j + 1].arrivalTime || 
+                    (processes[j].arrivalTime == processes[j + 1].arrivalTime && processes[j].priority < processes[j + 1].priority)) {
+                    Process temp = processes[j];
+                    processes[j] = processes[j + 1];
+                    processes[j + 1] = temp;
+                }
+            }
+        }
+    }
+    
+    private static void calculateCompletionTimes(Process[] processes) {
+        int currentTime = 0;
+        for (Process process : processes) {
+            if (currentTime < process.arrivalTime) {
+                currentTime = process.arrivalTime;
+            }
+            process.completionTime = currentTime + process.burstTime;
+            currentTime = process.completionTime;
+        }
+    }
+
+    private static void calculateTurnAroundTimes(Process[] processes) {
+        for (Process process : processes) {
+            process.turnAroundTime = process.completionTime - process.arrivalTime;
+        }
+    }
+
+    private static void calculateWaitingTimes(Process[] processes) {
+        for (Process process : processes) {
+            process.waitingTime = process.turnAroundTime - process.burstTime;
+        }
+    }
+
+    private static void printProcessDetails(Process[] processes) {
+        System.out.println("\nProcess\tArrival Time\tBurst Time\tPriority\tCompletion Time\tTurn Around Time\tWaiting Time");
+        for (Process process : processes) {
+            System.out.println(process.id + "\t\t" + process.arrivalTime + "\t\t" + process.burstTime + "\t\t" + process.priority + "\t\t" + process.completionTime + "\t\t" + process.turnAroundTime + "\t\t" + process.waitingTime);
+        }
+    }
+
+    private static void printAverageTimes(Process[] processes) {
+        double totalWaitingTime = 0, totalTurnAroundTime = 0;
+        for (Process process : processes) {
+            totalWaitingTime += process.waitingTime;
+            totalTurnAroundTime += process.turnAroundTime;
+        }
+        double averageWaitingTime = totalWaitingTime / processes.length;
+        double averageTurnAroundTime = totalTurnAroundTime / processes.length;
+        System.out.println("\nAverage Waiting Time: " + averageWaitingTime);
+        System.out.println("Average Turn Around Time: " + averageTurnAroundTime);
+    }
+}

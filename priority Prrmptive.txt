@@ -1,0 +1,83 @@
+import java.util.Scanner;
+
+class Process {
+    int id;
+    int arrivalTime;
+    int burstTime;
+    int priority;
+    int completionTime;
+    int waitingTime;
+    int turnAroundTime;
+    int remainingTime;
+}
+
+public class PriorityPreemtive {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter the number of processes: ");
+        int n = scanner.nextInt();
+        Process[] processes = new Process[n];
+
+        for (int i = 0; i < n; i++) {
+            processes[i] = new Process();
+            processes[i].id = i + 1;
+
+            System.out.print("Enter arrival time for process " + (i + 1) + ": ");
+            processes[i].arrivalTime = scanner.nextInt();
+
+            System.out.print("Enter burst time for process " + (i + 1) + ": ");
+            processes[i].burstTime = scanner.nextInt();
+            
+            System.out.print("Enter priority for process " + (i + 1) + ": ");
+            processes[i].priority = scanner.nextInt();
+            
+            processes[i].remainingTime = processes[i].burstTime;
+        }
+
+        int currentTime = 0;
+        int completed = 0;
+        float totalWaitingTime = 0;
+        float totalTurnAroundTime = 0;
+
+        while (completed != n) {
+            int idx = -1;
+            int highestPriority = Integer.MAX_VALUE;
+            
+            for (int i = 0; i < n; i++) {
+                if (processes[i].arrivalTime <= currentTime && processes[i].remainingTime > 0 && processes[i].priority < highestPriority) {
+                    highestPriority = processes[i].priority;
+                    idx = i;
+                }
+            }
+
+            if (idx != -1) {
+                processes[idx].remainingTime--;
+                currentTime++;
+                
+                if (processes[idx].remainingTime == 0) {
+                    processes[idx].completionTime = currentTime;
+                    processes[idx].turnAroundTime = processes[idx].completionTime - processes[idx].arrivalTime;
+                    processes[idx].waitingTime = processes[idx].turnAroundTime - processes[idx].burstTime;
+
+                    totalTurnAroundTime += processes[idx].turnAroundTime;
+                    totalWaitingTime += processes[idx].waitingTime;
+
+                    completed++;
+                }
+            } else {
+                currentTime++;
+            }
+        }
+
+        System.out.println("PID\tArrival\tBurst\tPriority\tCompletion\tTurnAround\tWaiting");
+        for (Process p : processes) {
+            System.out.println(p.id + "\t" + p.arrivalTime + "\t" + p.burstTime + "\t" + p.priority + "\t\t" + p.completionTime + "\t\t" + p.turnAroundTime + "\t\t" + p.waitingTime);
+        }
+
+        System.out.println("\nAverage Turnaround Time: " + (totalTurnAroundTime / n));
+        System.out.println("Average Waiting Time: " + (totalWaitingTime / n));
+
+        scanner.close();
+    }
+}
